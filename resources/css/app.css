@@ -15,3 +15,43 @@
     --uranian-blue: #bde0feff;
     --light-sky-blue: #a2d2ffff;
 }
+
+.bg-primary {
+    background-color: var(--fairy-tale);
+}
+
+.bg-secondary {
+    background-color: var(--carnation-pink);
+}
+
+.bg-tertiary {
+    background-color: var(--uranian-blue);
+}
+
+.bg-light {
+    background-color: var(--light-sky-blue);
+}
+
+.bg-accent {
+    background-color: var(--thistle);
+}
+
+.text-primary {
+    color: var(--fairy-tale);
+}
+
+.text-secondary {
+    color: var(--carnation-pink);
+}
+
+.text-tertiary {
+    color: var(--uranian-blue);
+}
+
+.text-light {
+    color: var(--light-sky-blue);
+}
+
+.text-accent {
+    color: var(--thistle);
+}

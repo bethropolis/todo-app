@@ -1,4 +1,7 @@
 <script>
+    import Mobile from "./mobile.svelte";
+    import Category from "./category.svelte";
+    import Hello from "./hello.svelte";
     import Todo from "./todo.svelte";
 
     let todos = [
@@ -29,11 +32,15 @@
     }
 </script>
 
+<Hello />
+<Category />
 <div class="flex flex-col items-center text-center space-y-4">
     {#each todos as todo}
         <Todo {todo} on:todoChange={handleTodoChange} />
     {/each}
 </div>
+
+<Mobile />
 
 <style>
     /* your styles go here */

@@ -1,12 +1,13 @@
 <script>
     import { createEventDispatcher } from 'svelte';
+    import { nav } from '../route';
   
     let input = '';
     let labels = [
       {
         name: 'Work',
         color: '#f28482ff',
-        selected: false,
+        selected: true,
       },
       {
         name: 'Personal',
@@ -25,7 +26,7 @@
       },
     ];
   
-    let selectedLabels = [];
+    let selectedLabel = ''
     const dispatch = createEventDispatcher();
   
     function handleInput(event) {
@@ -38,22 +39,22 @@
         const todo = {
           title: input,
           date: new Date().toISOString().slice(0, 10),
-          labels: selectedLabels.map((label) => label.name),
+          labels: selectedLabel,
           time: new Date().toLocaleTimeString(),
           done: false,
         };
   
         // Dispatch an event with the new todo item
         dispatch('todoAdd', { todo });
-  
+        nav('');
         // Clear the input and the labels
         input = '';
-        selectedLabels = [];
+        selectedLabel = '';
       }
     }
   
     function handleSelect(event) {
-      selectedLabels = event.detail;
+      selectedLabel = event.target.value;
     }
   </script>
   
@@ -62,18 +63,11 @@
     <input class="input" type="text" placeholder="Enter your todo here" bind:value={input} on:input={handleInput} />
   
     <!-- Select -->
-    <div class="select-container">
-      <div class="selected-labels">
-        {#each selectedLabels as label}
-          <div class="selected-label" style="background-color: {label.color}">
-            {label.name}
-          </div>
-        {/each}
-      </div>
-      <select class="select" on:change={handleSelect}>
-        <option disabled selected>Select Labels</option>
+    <div class="select-container flex  space-x-2">
+      <label for="select" class="align-items-center">Label:</label>
+      <select class="select" id="select" on:change={handleSelect}>
         {#each labels as label}
-          <option value={label}>{label.name}</option>
+          <option value={label.name} selected={label.selected}>{label.name} </option>
         {/each}
       </select>
     </div>
@@ -98,7 +92,7 @@
     }
   
     .select-container {
-      @apply relative w-1/4 mt-4;
+      @apply relative w-48 mt-4 justify-center items-center;
     }
   
     .selected-labels {
@@ -114,7 +108,7 @@
     }
   
     .button {
-      @apply fixed bottom-12 right-0 bg-green-500 text-white rounded-full p-4 m-4 shadow-lg;
+      @apply fixed bottom-4 right-0 bg-green-500 text-white rounded-full p-4 m-4 shadow-lg;
     }
   
     .button:hover {
