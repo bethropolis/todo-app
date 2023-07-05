@@ -1,11 +1,19 @@
 <script>
+	import CalenderPage from './Components/calenderPage.svelte';
+	import TodoPage from './Components/todoPage.svelte';
+    import Mobile from "./Components/mobile.svelte";
+    import CategoryPage from './Components/categoryPage.svelte';
+    import Input from './Components/input.svelte';
+
     export let title;
+
+
 </script>
-
-<div class="flex flex-col  items-center text-center space-y-4">
-
-</div>
-
+<!-- <CalenderPage/> -->
+ <!-- <CategoryPage/>
+<TodoPage/> -->
+<Input/>
+<Mobile/>
 <style>
 
 </style>
