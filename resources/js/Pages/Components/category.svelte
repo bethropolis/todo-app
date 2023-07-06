@@ -1,38 +1,17 @@
 <script>
-    import { createEventDispatcher } from 'svelte';
+    import { createEventDispatcher, onMount } from 'svelte';
+    import { Todo } from '../todo';
     
-    export let categories = [
-      {
-        name: 'All',
-        color: '#f0efebff',
-        done: 5,
-        all: 10
-      },
-      {
-        name: 'Work',
-        color: '#f28482ff',
-        done: 3,
-        all: 6
-      },
-      {
-        name: 'Personal',
-        color: '#84a59dff',
-        done: 1,
-        all: 2
-      },
-      {
-        name: 'Shopping',
-        color: '#f6bd60ff',
-        done: 2,
-        all: 4
-      },
-      {
-        name: 'Urgent',
-        color: '#cdb4dbff',
-        done: 2,
-        all: 4
-      }
-    ];
+    let categories = [];
+
+    onMount(async()=>{
+      let c = await Todo.getAllCategories();
+      console.log("🚀 ~ file: category.svelte:9 ~ onMount ~ c:", c)
+      c.forEach(item => { 
+        categories.push(item)
+      });
+    })
+
     
     let activeCategory = categories[0];
     const dispatch = createEventDispatcher();

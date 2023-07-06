@@ -4,8 +4,8 @@
     export let todo = {
         title: "",
         date: "",
+        category: "",
         labels: [],
-        time: "",
         done: false,
     };
 
@@ -27,6 +27,18 @@
         setTimeout(() => {
             dispatch("todoDelete", { todo });
         }, 1000); // Simulate some delay
+    }
+
+    function getTime(time){
+        let dt = new Date(time);
+        let t = `${dt.getHours()}:${dt.getMinutes()}`;
+        return t;
+    }
+
+    function getDate(time){
+        let dt = new Date(time);
+        let d = `${dt.getDay()}/${dt.getMonth()}/${dt.getFullYear()}`;
+        return d;
     }
 </script>
 
@@ -78,13 +90,11 @@
 
     {#if expanded}
         <div class="details">
-            <p>Date: {todo.date}</p>
+            <p>Date: {getDate(todo.date)}</p>
             <p>
-                Labels: {#each todo.labels as label}<span class="label"
-                        >{label}</span
-                    >{/each}
+                Labels: {#each todo.labels as label}<span class="label">{label}</span>{/each}
             </p>
-            <p>Time: {todo.time}</p>
+            <p>Time: {getTime(todo.date)}</p>
         </div>
     {/if}
 </div>
@@ -112,7 +122,7 @@
     }
 
     .details {
-        @apply text-sm text-gray-500 mt-2;
+        @apply text-sm text-left text-gray-500  mt-2;
     }
 
     .label {

@@ -2,24 +2,16 @@
     import Mobile from "./mobile.svelte";
     import Category from "./category.svelte";
     import Hello from "./hello.svelte";
-    import Todo from "./todo.svelte";
+    import TodoItem from "./todo.svelte";
+    import {Todo} from "../todo";
+    import { onMount } from "svelte";
 
-    let todos = [
-        {
-            title: "Buy groceries",
-            date: "2023-07-05",
-            labels: ["shopping", "urgent"],
-            time: "10:00 AM",
-            done: false,
-        },
-        {
-            title: "Finish project",
-            date: "2023-07-06",
-            labels: ["work", "deadline"],
-            time: "5:00 PM",
-            done: true,
-        },
-    ];
+    let todos =  [];
+
+
+    onMount(async()=>{
+        todos = await Todo.getAllTodo(); 
+    })
 
     function handleTodoChange(event) {
         const { todo } = event.detail;
@@ -36,7 +28,7 @@
 <Category />
 <div class="flex flex-col items-center text-center space-y-4">
     {#each todos as todo}
-        <Todo {todo} on:todoChange={handleTodoChange} />
+        <TodoItem {todo} on:todoChange={handleTodoChange} />
     {/each}
 </div>
 
