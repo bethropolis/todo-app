@@ -17,23 +17,31 @@
         const { todo } = event.detail;
 
         // Update the todo item in the todos array
-        todos = todos.map((t) => (t.title === todo.title ? todo : t));
+        todos = todos.map((t) => (t.id === todo.id ? todo : t));
 
-        // Do something else with the updated todo item
-        console.log(todo);
+    }
+
+    function handleTodoDelete(event) {
+        const { todo } = event.detail;
+
+        todos = todos.filter((t) => t.id !== todo.id);
     }
 </script>
 
+<main>
 <Hello />
 <Category />
 <div class="flex flex-col items-center text-center space-y-4">
     {#each todos as todo}
-        <TodoItem {todo} on:todoChange={handleTodoChange} />
+        <TodoItem {todo} on:todoChange={handleTodoChange} on:todoDelete={handleTodoDelete} />
     {/each}
 </div>
-
+</main>
 <Mobile />
 
 <style>
-    /* your styles go here */
+    main{
+        margin-bottom: 6rem;
+    }
+
 </style>

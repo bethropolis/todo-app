@@ -10,7 +10,7 @@ class Todos extends Model
     use HasFactory;
     
     // The table name
-    protected $table = 'todos';
+    protected $table = 'todo';
     
     // The attributes that are mass assignable
     protected $fillable = [

@@ -7,147 +7,312 @@ import { db } from "./db";
 // Define the logic for your todo app
 export class Todo {
 
+    static async handleError(error, action) {
+        console.error(`Error in ${action}:`, error);
+        throw error;
+    }
 
     static async addSync(type, itemId) {
         try {
             const date = new Date();
-            const sync = { type, itemId, time: date }
-            const SyncId = await db.Sync.add(sync);
-            localStorage.setItem("syncId",SyncId );
-            console.log('Task sync with ID:', SyncId);
+            const sync = { type, itemId, time: date };
+            const syncId = await db.Sync.add(sync);
+            localStorage.setItem('syncId', syncId);
+            console.log(`Sync added type:${type} with ID:`, syncId);
+            return syncId;
         } catch (error) {
-            console.error('Error adding task:', error);
+            await this.handleError(error, 'addSync');
         }
     }
 
-
-    // Method to add a task
-    static async addTodo(title, category,labels = []) {
+    static async addTodo(todoData) {
         try {
-            const date = new Date();
-            const task = { title, category,labels, date, done: false, delete: false };
-            const taskId = await db.Todo.add(task);
-            await this.addSync('add', taskId);
-            console.log('Task added with ID:', taskId);
+            const todo = {
+                title: todoData.title,
+                category: parseInt(todoData.category),
+                labels: todoData.labels,
+                date: new Date(),
+                done: false,
+                deleted: false,
+            };
+            const todoId = await db.Todo.add(todo);
+
+            // Add sync for adding a new todo
+            await this.addSync('addTodo', todoId);
+
+            console.log('Todo added successfully');
+            return todoId;
         } catch (error) {
-            console.error('Error adding task:', error);
+            await this.handleError(error, 'addTodo');
         }
     }
 
-    // Method to get all Todo
     static async getAllTodo() {
         try {
-            const Todo = await db.Todo.toArray();
-            await Todo.forEach(async (item,index) => {
-              const category = await db.Categories.where('id').equals(item.category).toArray();  
-              Todo[index].category = category[0]|| null;
-            });
-             return Todo;
+            const todos = await db.Todo.toArray();
+
+            const formattedTodos = await Promise.all(
+                todos.map(async (todo) => {
+                    try {
+                        const associatedCategory = await db.Categories.get(todo.category);
+                        if (!associatedCategory) {
+                            throw new Error(`Category with ID ${todo.category} not found`);
+                        }
+                        return {
+                            title: todo.title,
+                            category: {
+                                name: associatedCategory.name,
+                                color: associatedCategory.color,
+                                id: associatedCategory.id,
+                            },
+                            labels: todo.labels,
+                            date: todo.date,
+                            done: todo.done,
+                            delete: todo.deleted,
+                            id: todo.id,
+                        };
+                    } catch (error) {
+                        await this.handleError(error, 'getAllTodo');
+                    }
+                })
+            );
+
+            return formattedTodos;
         } catch (error) {
-            console.error('Error getting Todo:', error);
+            await this.handleError(error, 'getAllTodo');
         }
     }
 
-    // Method to get Todo by category
     static async getTodoByCategory(category) {
         try {
-            const Todo = await db.Todo.where('category').equals(category).toArray();
-            return Todo;
+            const todos = await db.Todo.where('category').equals(category).toArray();
+
+            const formattedTodos = await Promise.all(
+                todos.map(async (todo) => {
+                    try {
+                        const associatedCategory = await db.Categories.get(todo.category);
+                        if (!associatedCategory) {
+                            throw new Error(`Category with ID ${todo.category} not found`);
+                        }
+                        return {
+                            title: todo.title,
+                            category: {
+                                name: associatedCategory.name,
+                                color: associatedCategory.color,
+                                id: associatedCategory.id,
+                            },
+                            labels: todo.labels,
+                            date: todo.date,
+                            done: todo.done,
+                            delete: todo.deleted,
+                            id: todo.id,
+                        };
+                    } catch (error) {
+                        await this.handleError(error, 'getTodoByCategory');
+                    }
+                })
+            );
+            return formattedTodos;
         } catch (error) {
-            console.error('Error getting Todo by category:', error);
+            await this.handleError(error, 'getTodoByCategory');
         }
     }
 
-    // Method to add a category
-    static async addCategory(name,color = "#ae6071") {
+    static async addCategory(name, categoryId) {
         try {
-            const category = { name, color };
-            const categoryID = await db.Categories.add(category);
-            console.log('Category added with ID:', categoryID);
+            const color = this.generateRandomColor();
+            const category = { name, color, category: categoryId };
+            const c_id = await db.Categories.add(category);
+            console.log('Category added successfully');
+            await this.addSync('addCategory', c_id);
         } catch (error) {
-            console.error('Error adding category:', error);
-        }
-    }  
-    
-    // Method to get all categories
-    static async getCategory(id) {
-        try {
-            const category = await db.Categories.where('id').equals(id).toArray();
-             return category;
-        } catch (error) {
-            console.error('Error getting categories:', error);
+            await this.handleError(error, 'addCategory');
         }
     }
 
-    // Method to get all categories
+    static generateRandomColor() {
+        const letters = '0123456789ABCDEF';
+        let color = '#';
+        for (let i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    }
+
+    static async getCategory(categoryId) {
+        try {
+            const category = await db.Categories.get(categoryId);
+            if (!category) {
+                throw new Error(`Category with ID ${categoryId} not found`);
+            }
+            return category;
+        } catch (error) {
+            await this.handleError(error, 'getCategory');
+        }
+    }
+
+    static async updateCategory(categoryId, updatedCategory) {
+        try {
+            const category = await db.Categories.get(categoryId);
+            if (!category) {
+                throw new Error(`Category with ID ${categoryId} not found`);
+            }
+            const updated = { ...category, ...updatedCategory };
+            await db.Categories.put(updated);
+            await this.addSync('updateCategory', categoryId);
+            console.log(`Category with ID ${categoryId} updated successfully`);
+        } catch (error) {
+            await this.handleError(error, 'updateCategory');
+        }
+    }
+
+    static async deleteCategory(categoryId) {
+        try {
+            const category = await db.Categories.get(categoryId);
+            if (!category) {
+                throw new Error(`Category with ID ${categoryId} not found`);
+            }
+            await db.Categories.delete(categoryId);
+            await this.addSync('deleteCategory', categoryId);
+            console.log(`Category with ID ${categoryId} deleted successfully`);
+        } catch (error) {
+            await this.handleError(error, 'deleteCategory');
+        }
+    }
+
     static async getAllCategories() {
         try {
             const categories = await db.Categories.toArray();
-            categories.forEach(async (item, index)=>{
-                const all = await db.Todo.where('category').equals(item.id).toArray() || [];
-                const done = all.filter((item)=>{
-                    return item.done
-                }).length
-
-                categories[index] = {...item, done, all: all.length}
-            })
-            return categories;
+            const promises = categories.map(async (item, index) => {
+                try {
+                    const all = await db.Todo.where('category').equals(item.id).toArray() || [];
+                    const done = all.filter((item) => {
+                        return item.done;
+                    }).length;
+                    return { ...item, done, all: all.length };
+                } catch (error) {
+                    await this.handleError(error, 'getAllCategories');
+                }
+            });
+            const formattedCategories = await Promise.all(promises);
+            return formattedCategories;
         } catch (error) {
-            console.error('Error getting categories:', error);
+            await this.handleError(error, 'getAllCategories');
         }
     }
 
-    // Method to add a tag
+    static async markAsDone(todoId) {
+        try {
+            const todo = await db.Todo.get(todoId);
+            if (!todo) {
+                throw new Error(`Todo with ID ${todoId} not found`);
+            }
+            todo.done = !todo.done;
+            await db.Todo.put(todo);
+            await this.addSync('markAsDone', todoId);
+            console.log(`Todo with ID ${todoId} marked as done`);
+        } catch (error) {
+            await this.handleError(error, 'markAsDone');
+        }
+    }
+
+    static async getByDay(date) {
+        try {
+            const targetDate = new Date(date);
+            const startDate = new Date(targetDate.getTime() + 24 * 60 * 60 * 1000); // Subtract 24 hours
+
+            const todos = await db.Todo
+                .where('date')
+                .between( targetDate,startDate, true, true) // Range includes startDate and targetDate
+                .toArray();
+                
+
+            const formattedTodos = todos.map((todo) => ({
+                title: todo.title,
+                category: {
+                    name: todo.category.name,
+                    color: todo.category.color,
+                    id: todo.category.id,
+                },
+                labels: todo.labels,
+                date: todo.date,
+                done: todo.done,
+                delete: todo.deleted,
+                id: todo.id,
+            }));
+
+            await this.addSync('getByDay', date);
+            return formattedTodos;
+        } catch (error) {
+            await this.handleError(error, 'getByDay');
+        }
+    }
+
+
     static async addTag(name) {
         try {
             const tag = { name };
             const tagId = await db.Tags.add(tag);
             console.log('Tag added with ID:', tagId);
         } catch (error) {
-            console.error('Error adding tag:', error);
+            await this.handleError(error, 'addTag');
         }
     }
-
 
     static async addUser(name) {
         try {
-            const user = {id: 1, name };
+            const user = { id: 1, name };
             const userId = await db.User.put(user);
             console.log('Tag added with ID:', userId);
         } catch (error) {
-            console.error('Error adding User:', error);
+            await this.handleError(error, 'addUser');
         }
     }
-    // Method to get all tags
+
     static async getAllTags() {
         try {
             const tags = await db.Tags.toArray();
             console.log('All Tags:', tags);
         } catch (error) {
-            console.error('Error getting tags:', error);
+            await this.handleError(error, 'getAllTags');
+        }
+    }
+
+    static async deleteTodo(todoId) {
+        try {
+            const todo = await db.Todo.get(todoId);
+            if (!todo) {
+                throw new Error(`Todo with ID ${todoId} not found`);
+            }
+            await db.Todo.delete(todoId);
+            await this.addSync('deleteTodo', todoId);
+            console.log(`Todo with ID ${todoId} deleted successfully`);
+        } catch (error) {
+            await this.handleError(error, 'deleteTodo');
         }
     }
 }
 
+
 // Example usage
-(async () => {
+// (async () => {
 
-    await Todo.addCategory('Personal');
-    await Todo.addCategory('Work');
-    await Todo.addUser('john');
+//     await Todo.addCategory('Personal');
+//     await Todo.addCategory('Work');
+//     await Todo.addUser('john');
 
-    // Add Todo
-    await Todo.addTodo('Task 1', 1);
-    await Todo.addTodo('Task 2', 2);
-    await Todo.addTodo('Task 3', 1);
+//     // Add Todo
+//     await Todo.addTodo('Task 1', 1);
+//     await Todo.addTodo('Task 2', 2);
+//     await Todo.addTodo('Task 3', 1);
 
-    // Get all Todo
-    await Todo.getAllTodo();
+//     // Get all Todo
+//     await Todo.getAllTodo();
 
-    // Get Todo by category
-    await Todo.getCategory(1);
+//     // Get Todo by category
+//     console.log(await Todo.getTodoByCategory(1));
 
-    // Get all categories
-    await Todo.getAllCategories();
+//     // Get all categories
+//     await Todo.getAllCategories();
 
-})();
+// })();

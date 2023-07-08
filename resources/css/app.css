@@ -16,6 +16,15 @@
     --light-sky-blue: #a2d2ffff;
 }
 
+html{
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+}
+
+html::-webkit-scrollbar {
+    width: 0;
+}
+
 .bg-primary {
     background-color: var(--fairy-tale);
 }

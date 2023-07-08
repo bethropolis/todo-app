@@ -182,7 +182,7 @@ export class DB {
 // Instantiate the DB class with the database name and schema
 export const db = new DB('todo', {
   Todo: '++id, &title, category,labels, date, done, deleted',
-  Categories: '++id, &name, color',
-  Sync: '++id, type, &itemId, time',
+  Categories: '++id, &category, &name, color',
+  Sync: '++id, type, itemId, time',
   User: 'id, &name'
 });

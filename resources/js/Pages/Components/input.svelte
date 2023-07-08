@@ -1,32 +1,16 @@
 <script>
-    import { createEventDispatcher } from 'svelte';
+    import { createEventDispatcher, onMount } from 'svelte';
     import { nav } from '../route';
+    import { Todo } from '../todo';
   
     let input = '';
-    let labels = [
-      {
-        name: 'Work',
-        color: '#f28482ff',
-        selected: true,
-      },
-      {
-        name: 'Personal',
-        color: '#84a59dff',
-        selected: false,
-      },
-      {
-        name: 'Shopping',
-        color: '#f6bd60ff',
-        selected: false,
-      },
-      {
-        name: 'Urgent',
-        color: '#cdb4dbff',
-        selected: false,
-      },
-    ];
+    let labels = [];
+
+    onMount(async () => {
+      labels = await Todo.getAllCategories();
+    });
   
-    let selectedLabel = ''
+    let selectedCategory = 1;
     const dispatch = createEventDispatcher();
   
     function handleInput(event) {
@@ -39,22 +23,21 @@
         const todo = {
           title: input,
           date: new Date().toISOString().slice(0, 10),
-          labels: selectedLabel,
-          time: new Date().toLocaleTimeString(),
-          done: false,
+          category: selectedCategory,
+          labels: "",
         };
-  
+
+        Todo.addTodo(todo);
+        input = '';
+        selectedCategory = '';
         // Dispatch an event with the new todo item
         dispatch('todoAdd', { todo });
         nav('');
-        // Clear the input and the labels
-        input = '';
-        selectedLabel = '';
       }
     }
   
     function handleSelect(event) {
-      selectedLabel = event.target.value;
+      selectedCategory = event.target.value;
     }
   </script>
   
@@ -67,7 +50,7 @@
       <label for="select" class="align-items-center">Label:</label>
       <select class="select" id="select" on:change={handleSelect}>
         {#each labels as label}
-          <option value={label.name} selected={label.selected}>{label.name} </option>
+          <option value={label.id} selected={label.id === selectedCategory}>{label.name} </option>
         {/each}
       </select>
     </div>

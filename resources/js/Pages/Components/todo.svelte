@@ -1,20 +1,23 @@
 <script>
     import { createEventDispatcher } from "svelte";
+    import { Todo } from "../todo";
 
     export let todo = {
+        id: "",
         title: "",
         date: "",
         category: "",
         labels: [],
         done: false,
+        delete: false,
     };
 
     let expanded = false;
-    let deleting = false;
     const dispatch = createEventDispatcher();
 
     function toggleDone() {
         todo.done = !todo.done;
+        Todo.markAsDone(todo.id);
         dispatch("todoChange", { todo });
     }
 
@@ -23,26 +26,27 @@
     }
 
     function deleteTodo() {
-        deleting = true;
+        todo.delete = !todo.delete;
+        Todo.deleteTodo(todo.id);
         setTimeout(() => {
             dispatch("todoDelete", { todo });
         }, 1000); // Simulate some delay
     }
 
-    function getTime(time){
+    function getTime(time) {
         let dt = new Date(time);
         let t = `${dt.getHours()}:${dt.getMinutes()}`;
         return t;
     }
 
-    function getDate(time){
+    function getDate(time) {
         let dt = new Date(time);
         let d = `${dt.getDay()}/${dt.getMonth()}/${dt.getFullYear()}`;
         return d;
     }
 </script>
 
-<div class="container" class:deleting on:click={toggleExpand}>
+<div class="container" class:deleting={todo.delete} role="detail" on:click={toggleExpand}>
     <div class="flex items-center">
         <div
             class="checkbox"
@@ -67,7 +71,7 @@
                 </svg>
             {/if}
         </div>
-        <div class="title">{todo.title}</div>
+        <span class="title" class:done={todo.done}>{todo.title}</span>
 
         <!-- Delete icon button -->
         <button class="delete-button" on:click|stopPropagation={deleteTodo}>
@@ -92,7 +96,13 @@
         <div class="details">
             <p>Date: {getDate(todo.date)}</p>
             <p>
-                Labels: {#each todo.labels as label}<span class="label">{label}</span>{/each}
+                Labels:<span
+                    class="label"
+                    style="background-color: {todo.category.color};"
+                    >{todo.category.name}</span
+                >
+                {#each todo.labels as label}<span class="label">{label}</span
+                    >{/each}
             </p>
             <p>Time: {getTime(todo.date)}</p>
         </div>
@@ -102,7 +112,7 @@
 <style>
     /* Use tailwind classes to style the layout */
     .container {
-        @apply bg-white shadow-lg rounded-lg p-4 max-w-sm cursor-pointer relative transition-all duration-300;
+        @apply bg-white shadow-lg rounded-lg p-4 max-w-xl cursor-pointer relative transition-all duration-300;
     }
 
     .container.deleting {
@@ -120,13 +130,18 @@
     .title {
         @apply text-lg font-bold truncate;
     }
+    .title.done {
+        /* text strike trough */
+        text-decoration: line-through;
+        text-decoration-thickness: 2px;
+    }
 
     .details {
         @apply text-sm text-left text-gray-500  mt-2;
     }
 
     .label {
-        @apply inline-block bg-gray-200 rounded-full px-2 py-1 mr-2;
+        @apply inline-block bg-gray-200 rounded-full px-2 py-1 mr-2 text-xs;
     }
 
     .delete-button {

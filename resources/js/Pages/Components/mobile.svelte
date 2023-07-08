@@ -21,7 +21,7 @@
 </script>
 
 <nav
-    class="fixed bottom-0 left-0 right-0 flex justify-between items-center px-4 py-2"
+    class="fixed bottom-0 left-0 right-0 flex justify-between items-center px-4 py-2 bg-white"
 >
     <button
         class="button"
