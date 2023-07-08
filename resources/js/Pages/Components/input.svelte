@@ -71,7 +71,7 @@
     }
   
     .input {
-      @apply text-2xl font-bold w-3/4 text-center outline-none bg-none rounded-lg p-4 m-4 bg-transparent;
+      @apply text-xl font-bold w-3/4 text-center outline-none bg-none rounded-lg p-4 m-4 bg-transparent;
     }
   
     .select-container {

@@ -7,7 +7,10 @@
     let todos = [];
 
     onMount(async () => {
-        todos = await Todo.getByDay(new Date());
+        let d = new Date();
+        todos = await Todo.getByDay(
+            new Date(d.getTime() - 24 * 60 * 60 * 1000)
+        );
     });
 
     function handleTodoChange(event) {

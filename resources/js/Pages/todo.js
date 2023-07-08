@@ -219,29 +219,40 @@ export class Todo {
     static async getByDay(date) {
         try {
             const targetDate = new Date(date);
-            const startDate = new Date(targetDate.getTime() + 24 * 60 * 60 * 1000); // Subtract 24 hours
+            const startDate = new Date(targetDate.getTime() + 24 * 60 * 60 * 1000); 
 
             const todos = await db.Todo
                 .where('date')
-                .between( targetDate,startDate, true, true) // Range includes startDate and targetDate
+                .between(targetDate, startDate, true, true) // Range includes startDate and targetDate
                 .toArray();
-                
 
-            const formattedTodos = todos.map((todo) => ({
-                title: todo.title,
-                category: {
-                    name: todo.category.name,
-                    color: todo.category.color,
-                    id: todo.category.id,
-                },
-                labels: todo.labels,
-                date: todo.date,
-                done: todo.done,
-                delete: todo.deleted,
-                id: todo.id,
-            }));
 
-            await this.addSync('getByDay', date);
+            const formattedTodos = await Promise.all(
+                todos.map(async (todo) => {
+                    try {
+                        const associatedCategory = await db.Categories.get(todo.category);
+                        if (!associatedCategory) {
+                            throw new Error(`Category with ID ${todo.category} not found`);
+                        }
+                        return {
+                            title: todo.title,
+                            category: {
+                                name: associatedCategory.name,
+                                color: associatedCategory.color,
+                                id: associatedCategory.id,
+                            },
+                            labels: todo.labels,
+                            date: todo.date,
+                            done: todo.done,
+                            delete: todo.deleted,
+                            id: todo.id,
+                        };
+                    } catch (error) {
+                        await this.handleError(error, 'getAllTodo');
+                    }
+                })
+            );
+
             return formattedTodos;
         } catch (error) {
             await this.handleError(error, 'getByDay');
