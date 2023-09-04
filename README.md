@@ -10,3 +10,8 @@ This is a fresh Laravel 10 application configured to use InertiaJS, Svelte, and 
 - yarn install
 - yarn run build
 - php artisan serve
+
+
+
+## License
+MIT license
